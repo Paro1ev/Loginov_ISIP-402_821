@@ -5,12 +5,12 @@ var app = builder.Build();
 
 var mailRepository = new MailRepository();
 
-mailRepository.Add(new Mail(14213, "Taganrog", "Gagarinskaya", 3, 5, 52, ""));
+mailRepository.Add(new Mail(14213, "Таганрог", "Гагаринская", 3, 5, 52, ""));
 
 
 app.MapGet("/", () =>
 {
-  
+
     return mailRepository.GetAll()
         .Select(mail => new
         {
@@ -25,8 +25,41 @@ app.MapGet("/", () =>
 app.MapPost("/", (Mail newMail) =>
 {
     mailRepository.Add(newMail);
-    return Results.Created("/", newMail); 
+    return Results.Created("/", newMail);
 });
+
+app.MapPut("/{index}", (int index, Mail updatedMail) =>
+{
+    var existingMail = mailRepository.GetByIndex(index);
+
+    if (existingMail == null)
+    {
+        return Results.NotFound("Письмо не найдено");
+    }
+
+    existingMail.City = updatedMail.City;
+    existingMail.Street = updatedMail.Street;
+    existingMail.House = updatedMail.House;
+    existingMail.Korpus = updatedMail.Korpus;
+    existingMail.Appartment = updatedMail.Appartment;
+    existingMail.Letter = updatedMail.Letter;
+
+    return Results.Ok(existingMail);
+});
+
+app.MapDelete("/{index}", (int index) =>
+{
+    var mailToRemove = mailRepository.GetByIndex(index);
+
+    if (mailToRemove == null)
+    {
+        return Results.NotFound("Письмо не найдено");
+    }
+
+    mailRepository.Remove(mailToRemove);
+    return Results.Ok("Письмо успешно удалено");
+});
+
 app.Run();
 
 
@@ -40,7 +73,7 @@ class Mail
     int appartment;
     string letter;
 
-    
+
 
     public Mail(int index, string city, string street, int house, int korpus, int appartment, string letter)
     {
